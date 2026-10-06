@@ -4,12 +4,14 @@ import com.example.bankappointment.dto.AvailabilitySlot;
 import com.example.bankappointment.service.AppointmentService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class AvailabilityController {
+
     private final AppointmentService appointmentService;
 
     public AvailabilityController(AppointmentService appointmentService) {

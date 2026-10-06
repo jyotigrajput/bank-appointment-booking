@@ -33,7 +33,5 @@ export const api = {
     if (phone) params.append('phone', phone);
     return request(`/appointments/search?${params.toString()}`);
   },
-  cancelAppointment: (id) => request(`/appointments/${id}/cancel`, {
-    method: 'PATCH'
-  })
+  cancelAppointment: (id) => request(`/appointments/${id}/cancel`, { method: 'PATCH' })
 };

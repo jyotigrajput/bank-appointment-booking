@@ -47,12 +47,12 @@ public class AppointmentService {
     }
 
     public List<Appointment> searchAppointmentsByCustomer(String email, String phone) {
-        String e = email == null ? "" : email.trim();
-        String p = phone == null ? "" : phone.trim();
-        if (e.isEmpty() && p.isEmpty()) {
+        String normalizedEmail = email == null ? "" : email.trim();
+        String normalizedPhone = phone == null ? "" : phone.trim();
+        if (normalizedEmail.isEmpty() && normalizedPhone.isEmpty()) {
             return List.of();
         }
-        return appointmentRepository.findByCustomerEmailOrPhone(e, p);
+        return appointmentRepository.findByCustomerEmailOrPhone(normalizedEmail, normalizedPhone);
     }
 
     @Transactional
@@ -68,23 +68,22 @@ public class AppointmentService {
         BankService bankService = bankServiceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new ServiceNotFoundException(request.getServiceId()));
         if (bankService.getStatus() != ServiceStatus.ACTIVE) {
-            throw new ServiceUnavailableException("Service is not active.");
+            throw new ServiceUnavailableException("Selected service is not active.");
         }
 
-        LocalDate date = request.getAppointmentDate();
-        if (date.isBefore(LocalDate.now())) {
+        LocalDate appointmentDate = request.getAppointmentDate();
+        if (appointmentDate.isBefore(LocalDate.now())) {
             throw new InvalidAppointmentDateException("Appointment date cannot be in the past.");
         }
 
-        LocalTime start = request.getStartTime();
-        LocalTime end = start.plusMinutes(bankService.getEstimatedDuration());
-
-        if (start.isBefore(branch.getOpeningTime()) || end.isAfter(branch.getClosingTime())) {
+        LocalTime startTime = request.getStartTime();
+        LocalTime endTime = startTime.plusMinutes(bankService.getEstimatedDuration());
+        if (startTime.isBefore(branch.getOpeningTime()) || endTime.isAfter(branch.getClosingTime())) {
             throw new BranchClosedException("Appointment is outside branch working hours.");
         }
 
-        Employee selectedEmployee = findAvailableEmployee(branch.getId(), bankService.getId(), date, start, end);
-        if (selectedEmployee == null) {
+        Employee employee = findAvailableEmployee(branch.getId(), bankService.getId(), appointmentDate, startTime, endTime);
+        if (employee == null) {
             throw new AppointmentAlreadyBookedException("The selected appointment slot is no longer available.");
         }
 
@@ -100,12 +99,12 @@ public class AppointmentService {
         appointment.setCustomer(customer);
         appointment.setBranch(branch);
         appointment.setService(bankService);
-        appointment.setEmployee(selectedEmployee);
-        appointment.setAppointmentDate(date);
-        appointment.setStartTime(start);
-        appointment.setEndTime(end);
+        appointment.setEmployee(employee);
+        appointment.setAppointmentDate(appointmentDate);
+        appointment.setStartTime(startTime);
+        appointment.setEndTime(endTime);
         appointment.setStatus(AppointmentStatus.CONFIRMED);
-        appointment.setAppointmentReference(generateAppointmentReference(date));
+        appointment.setAppointmentReference(generateAppointmentReference(appointmentDate));
 
         return appointmentRepository.save(appointment);
     }
@@ -120,29 +119,21 @@ public class AppointmentService {
             throw new ServiceUnavailableException("Branch is not active.");
         }
         if (bankService.getStatus() != ServiceStatus.ACTIVE) {
-            throw new ServiceUnavailableException("Service is not active.");
+            throw new ServiceUnavailableException("Selected service is not active.");
         }
         if (date.isBefore(LocalDate.now())) {
-            throw new InvalidAppointmentDateException("The selected date cannot be in the past.");
+            throw new InvalidAppointmentDateException("Selected date cannot be in the past.");
         }
 
         List<AvailabilitySlot> slots = new ArrayList<>();
         LocalTime current = branch.getOpeningTime();
         LocalTime closing = branch.getClosingTime();
-        LocalTime slotEnd;
 
-        while (true) {
-            slotEnd = current.plusMinutes(bankService.getEstimatedDuration());
-            if (!slotEnd.isAfter(closing)) {
-                boolean available = hasAvailableEmployee(branchId, serviceId, date, current, slotEnd);
-                slots.add(new AvailabilitySlot(current, slotEnd, available));
-                current = current.plusMinutes(30);
-                if (current.equals(closing) || current.isAfter(closing)) {
-                    break;
-                }
-            } else {
-                break;
-            }
+        while (current.plusMinutes(bankService.getEstimatedDuration()).compareTo(closing) <= 0) {
+            LocalTime slotEnd = current.plusMinutes(bankService.getEstimatedDuration());
+            boolean available = hasAvailableEmployee(branchId, serviceId, date, current, slotEnd);
+            slots.add(new AvailabilitySlot(current, slotEnd, available));
+            current = current.plusMinutes(30);
         }
 
         return slots;
@@ -162,7 +153,7 @@ public class AppointmentService {
             if (!employeeServiceRepository.existsByEmployeeIdAndBankServiceId(employee.getId(), serviceId)) {
                 continue;
             }
-            if (isEmployeeFree(employee, date, start, end)) {
+            if (isEmployeeAvailable(employee, date, start, end)) {
                 return employee;
             }
         }
@@ -173,15 +164,15 @@ public class AppointmentService {
         return findAvailableEmployee(branchId, serviceId, date, start, end) != null;
     }
 
-    private boolean isEmployeeFree(Employee employee, LocalDate date, LocalTime start, LocalTime end) {
+    private boolean isEmployeeAvailable(Employee employee, LocalDate date, LocalTime start, LocalTime end) {
         List<Appointment> appointments = appointmentRepository.findByEmployeeIdAndAppointmentDateAndStatusNot(
                 employee.getId(), date, AppointmentStatus.CANCELLED);
 
         for (Appointment appointment : appointments) {
             LocalTime existingStart = appointment.getStartTime();
             LocalTime existingEnd = appointment.getEndTime();
-            boolean overlap = start.isBefore(existingEnd) && end.isAfter(existingStart);
-            if (overlap) {
+            boolean overlaps = start.isBefore(existingEnd) && end.isAfter(existingStart);
+            if (overlaps) {
                 return false;
             }
         }

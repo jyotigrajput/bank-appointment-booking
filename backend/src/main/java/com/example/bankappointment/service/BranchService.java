@@ -2,6 +2,7 @@ package com.example.bankappointment.exception;
 
 import com.example.bankappointment.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -67,15 +68,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError() != null
-                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                : "Validation failed.";
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException ex) {
+        FieldError fieldError = ex.getBindingResult().getFieldError();
+        String message = fieldError != null ? fieldError.getDefaultMessage() : "Validation failed";
         return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message);
     }
 
     @ExceptionHandler(Exception.class)
-    public ErrorResponse handleGeneric(Exception ex) {
+    public ErrorResponse handleGenericException(Exception ex) {
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
     }
 

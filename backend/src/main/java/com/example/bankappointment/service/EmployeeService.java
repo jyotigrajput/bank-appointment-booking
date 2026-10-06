@@ -4,10 +4,12 @@ import com.example.bankappointment.entity.BankService;
 import com.example.bankappointment.exception.ServiceNotFoundException;
 import com.example.bankappointment.repository.BankServiceRepository;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class BankServiceService {
+
     private final BankServiceRepository bankServiceRepository;
 
     public BankServiceService(BankServiceRepository bankServiceRepository) {

@@ -1,12 +1,14 @@
-# Backend
+package com.example.bankappointment;
 
-This backend is a Spring Boot application for the bank appointment system.
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-## Setup
+@SpringBootTest
+@ActiveProfiles("test")
+class BankAppointmentApplicationTests {
 
-```bash
-mvn clean install
-mvn spring-boot:run
-```
-
-The API runs on http://localhost:8080.
+    @Test
+    void contextLoads() {
+    }
+}

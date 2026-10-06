@@ -4,10 +4,12 @@ import com.example.bankappointment.entity.Employee;
 import com.example.bankappointment.exception.EmployeeNotFoundException;
 import com.example.bankappointment.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class EmployeeService {
+
     private final EmployeeRepository employeeRepository;
 
     public EmployeeService(EmployeeRepository employeeRepository) {

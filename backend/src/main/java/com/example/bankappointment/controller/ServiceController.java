@@ -3,11 +3,13 @@ package com.example.bankappointment.controller;
 import com.example.bankappointment.entity.Branch;
 import com.example.bankappointment.service.BranchService;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class BranchController {
+
     private final BranchService branchService;
 
     public BranchController(BranchService branchService) {

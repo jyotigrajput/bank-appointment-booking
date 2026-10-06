@@ -4,10 +4,12 @@ import com.example.bankappointment.entity.Branch;
 import com.example.bankappointment.exception.BranchNotFoundException;
 import com.example.bankappointment.repository.BranchRepository;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class BranchService {
+
     private final BranchRepository branchRepository;
 
     public BranchService(BranchRepository branchRepository) {

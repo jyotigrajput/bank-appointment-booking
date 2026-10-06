@@ -46,30 +46,29 @@ export default function App() {
   );
 
   useEffect(() => {
+    async function loadInitialData() {
+      try {
+        const [serviceResult, branchResult] = await Promise.all([
+          api.getServices(),
+          api.getBranches()
+        ]);
+        setServices(serviceResult);
+        setBranches(branchResult);
+      } catch (err) {
+        setError(err.message || 'Unable to load data');
+      }
+    }
+
     loadInitialData();
   }, []);
 
-  const loadInitialData = async () => {
-    try {
-      const [serviceResult, branchResult] = await Promise.all([
-        api.getServices(),
-        api.getBranches()
-      ]);
-      setServices(serviceResult);
-      setBranches(branchResult);
-    } catch (err) {
-      setError(err.message || 'Unable to load data.');
-    }
-  };
-
   useEffect(() => {
-    const shouldLoadSlots = booking.serviceId && booking.branchId && booking.appointmentDate;
-    if (!shouldLoadSlots) {
+    if (!booking.serviceId || !booking.branchId || !booking.appointmentDate) {
       setAvailability([]);
       return;
     }
 
-    const run = async () => {
+    async function fetchSlots() {
       setLoading(true);
       try {
         const result = await api.getAvailability({
@@ -79,13 +78,13 @@ export default function App() {
         });
         setAvailability(result);
       } catch (err) {
-        setError(err.message || 'Unable to fetch available slots.');
+        setError(err.message || 'Unable to fetch available slots');
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    run();
+    fetchSlots();
   }, [booking.branchId, booking.serviceId, booking.appointmentDate]);
 
   const handleBookingChange = (event) => {
@@ -120,79 +119,69 @@ export default function App() {
       setAvailability([]);
       setPage('confirmation');
     } catch (err) {
-      setError(err.message || 'Appointment could not be created.');
+      setError(err.message || 'Appointment could not be created');
     }
   };
 
   const handleSearch = async (event) => {
     event.preventDefault();
     if (!search.email && !search.phone) {
-      setError('Enter either an email or a phone number to search appointments.');
+      setError('Enter an email or phone number to search appointments.');
       return;
     }
 
     try {
-      const result = await api.searchAppointments({
-        email: search.email,
-        phone: search.phone
-      });
+      const result = await api.searchAppointments({ email: search.email, phone: search.phone });
       setAppointments(result);
       setError('');
     } catch (err) {
-      setError(err.message || 'Unable to find appointments.');
+      setError(err.message || 'Unable to find appointments');
     }
   };
 
   const handleCancel = async (id) => {
     try {
       await api.cancelAppointment(id);
-      const refreshed = await api.searchAppointments({
-        email: search.email,
-        phone: search.phone
-      });
+      const refreshed = await api.searchAppointments({ email: search.email, phone: search.phone });
       setAppointments(refreshed);
     } catch (err) {
-      setError(err.message || 'Unable to cancel appointment.');
+      setError(err.message || 'Unable to cancel appointment');
     }
   };
 
   const renderHome = () => (
     <div className="page">
       <section className="hero">
-        <div>
-          <p className="eyebrow">Bank Services</p>
-          <h1>Bank Services Appointment Booking System</h1>
-          <p>
-            Schedule a meeting with a bank representative for account, loan, KYC, and customer service support.
-          </p>
-          <div className="hero-actions">
-            <button className="primary" onClick={() => setPage('services')}>Explore Services</button>
-            <button className="secondary" onClick={() => setPage('booking')}>Book Appointment</button>
-          </div>
+        <p className="eyebrow">Bank services</p>
+        <h1>Bank Services Appointment Booking System</h1>
+        <p>Book a visit to a branch for support with loans, account services, KYC updates, and more.</p>
+        <div className="hero-actions">
+          <button className="primary" onClick={() => setPage('services')}>Explore Services</button>
+          <button className="secondary" onClick={() => setPage('booking')}>Book Appointment</button>
         </div>
       </section>
 
       <section className="card-section">
-        <h2>How it works</h2>
+        <h2>How the booking works</h2>
         <div className="steps">
           <div className="step-card">
             <span>1</span>
-            <h3>Select service</h3>
-            <p>Choose the type of support you need.</p>
+            <h3>Select Service</h3>
+            <p>Choose the banking support you need.</p>
           </div>
           <div className="step-card">
             <span>2</span>
-            <h3>Select branch</h3>
-            <p>Pick the branch most convenient for you.</p>
+            <h3>Select Branch</h3>
+            <p>Pick the branch you prefer.</p>
           </div>
           <div className="step-card">
             <span>3</span>
-            <h3>Choose date</h3>
-            <p>Check available appointments for the date.</p>
+            <h3>Pick a Date</h3>
+            <p>View the available slots.</p>
           </div>
           <div className="step-card">
             <span>4</span>
-            <h3>Confirm booking</h3>
+            <h3>Confirm</h3>
             <p>Receive your appointment reference.</p>
           </div>
         </div>
@@ -215,7 +204,7 @@ export default function App() {
 
   const renderServices = () => (
     <div className="page">
-      <h2>Available services</h2>
+      <h2>Available bank services</h2>
       <div className="service-list">
         {services.map((service) => (
           <div key={service.id} className="service-item">
@@ -224,10 +213,13 @@ export default function App() {
               <p>{service.description}</p>
               <small>Duration: {service.estimatedDuration} minutes</small>
             </div>
-            <button className="primary" onClick={() => {
-              setBooking((current) => ({ ...current, serviceId: String(service.id) }));
-              setPage('booking');
-            }}>
+            <button
+              className="primary"
+              onClick={() => {
+                setBooking((current) => ({ ...current, serviceId: String(service.id) }));
+                setPage('booking');
+              }}
+            >
               Book Appointment
             </button>
           </div>
@@ -238,7 +230,7 @@ export default function App() {
 
   const renderBranches = () => (
     <div className="page">
-      <h2>Our branches</h2>
+      <h2>Branch locations</h2>
       <div className="branch-grid">
         {branches.map((branch) => (
           <div key={branch.id} className="branch-card">
@@ -248,10 +240,13 @@ export default function App() {
             <p>{branch.city}, {branch.state}</p>
             <p><strong>Phone:</strong> {branch.phone}</p>
             <p><strong>Hours:</strong> {branch.openingTime} - {branch.closingTime}</p>
-            <button className="primary" onClick={() => {
-              setBooking((current) => ({ ...current, branchId: String(branch.id) }));
-              setPage('booking');
-            }}>
+            <button
+              className="primary"
+              onClick={() => {
+                setBooking((current) => ({ ...current, branchId: String(branch.id) }));
+                setPage('booking');
+              }}
+            >
               Select Branch
             </button>
           </div>
@@ -299,12 +294,12 @@ export default function App() {
 
         {booking.serviceId && booking.branchId && booking.appointmentDate && (
           <div className="booking-step">
-            <label>Available slots</label>
+            <label>Available time slots</label>
             <div className="slot-grid">
               {loading ? (
                 <p>Loading available slots...</p>
               ) : availability.length === 0 ? (
-                <p>No slots available for the selected date.</p>
+                <p>No slots available for this date.</p>
               ) : (
                 availability.map((slot) => (
                   <button

@@ -40,11 +40,8 @@ class AppointmentServiceTest {
     @Autowired
     private CustomerRepository customerRepository;
 
-    @Autowired
-    private AppointmentRepository appointmentRepository;
-
     @BeforeEach
-    void setup() {
+    void setUp() {
         Branch branch = new Branch();
         branch.setBranchCode("BR-100");
         branch.setBranchName("Main Branch");
@@ -52,16 +49,16 @@ class AppointmentServiceTest {
         branch.setCity("Pune");
         branch.setState("Maharashtra");
         branch.setPincode("411001");
-        branch.setPhone("1234567890");
-        branch.setEmail("main@test.com");
+        branch.setPhone("9876543210");
+        branch.setEmail("branch@test.com");
         branch.setOpeningTime(LocalTime.of(9, 0));
         branch.setClosingTime(LocalTime.of(17, 0));
         branch.setStatus(BranchStatus.ACTIVE);
-        branch = branchRepository.save(branch);
+        branchRepository.save(branch);
 
         BankService service = new BankService();
         service.setName("Loan Enquiry");
-        service.setDescription("Loan discussion");
+        service.setDescription("Loan information");
         service.setEstimatedDuration(30);
         service.setStatus(ServiceStatus.ACTIVE);
         service = bankServiceRepository.save(service);
@@ -71,23 +68,23 @@ class AppointmentServiceTest {
         employee.setName("John Smith");
         employee.setDesignation("Loan Officer");
         employee.setEmail("john@test.com");
-        employee.setPhone("9876543210");
+        employee.setPhone("9988776655");
         employee.setBranch(branch);
         employee.setStatus(EmployeeStatus.ACTIVE);
         employee = employeeRepository.save(employee);
 
-        com.example.bankappointment.entity.EmployeeService rel = new com.example.bankappointment.entity.EmployeeService();
-        rel.setId(new com.example.bankappointment.entity.EmployeeServiceId(employee.getId(), service.getId()));
-        rel.setEmployee(employee);
-        rel.setBankService(service);
-        employeeServiceRepository.save(rel);
+        EmployeeService mapping = new EmployeeService();
+        mapping.setId(new EmployeeServiceId(employee.getId(), service.getId()));
+        mapping.setEmployee(employee);
+        mapping.setBankService(service);
+        employeeServiceRepository.save(mapping);
     }
 
     @Test
     void createAppointmentSuccessfully() {
         CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setCustomerName("John Doe");
-        request.setCustomerEmail("johndoe@example.com");
+        request.setCustomerName("Alice Johnson");
+        request.setCustomerEmail("alice@example.com");
         request.setCustomerPhone("9876543211");
         request.setBranchId(1L);
         request.setServiceId(1L);
@@ -105,7 +102,7 @@ class AppointmentServiceTest {
         CreateAppointmentRequest request = new CreateAppointmentRequest();
         request.setCustomerName("Past Customer");
         request.setCustomerEmail("past@example.com");
-        request.setCustomerPhone("9876543333");
+        request.setCustomerPhone("7654321098");
         request.setBranchId(1L);
         request.setServiceId(1L);
         request.setAppointmentDate(LocalDate.now().minusDays(1));
@@ -116,16 +113,15 @@ class AppointmentServiceTest {
 
     @Test
     void preventDoubleBooking() {
-        CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setCustomerName("A");
-        request.setCustomerEmail("a@example.com");
-        request.setCustomerPhone("1111111111");
-        request.setBranchId(1L);
-        request.setServiceId(1L);
-        request.setAppointmentDate(LocalDate.now().plusDays(1));
-        request.setStartTime(LocalTime.of(10, 0));
-
-        appointmentService.createAppointment(request);
+        CreateAppointmentRequest first = new CreateAppointmentRequest();
+        first.setCustomerName("A");
+        first.setCustomerEmail("a@example.com");
+        first.setCustomerPhone("1111111111");
+        first.setBranchId(1L);
+        first.setServiceId(1L);
+        first.setAppointmentDate(LocalDate.now().plusDays(2));
+        first.setStartTime(LocalTime.of(10, 0));
+        appointmentService.createAppointment(first);
 
         CreateAppointmentRequest second = new CreateAppointmentRequest();
         second.setCustomerName("B");
@@ -133,7 +129,7 @@ class AppointmentServiceTest {
         second.setCustomerPhone("2222222222");
         second.setBranchId(1L);
         second.setServiceId(1L);
-        second.setAppointmentDate(LocalDate.now().plusDays(1));
+        second.setAppointmentDate(LocalDate.now().plusDays(2));
         second.setStartTime(LocalTime.of(10, 0));
 
         assertThrows(AppointmentAlreadyBookedException.class, () -> appointmentService.createAppointment(second));
@@ -142,13 +138,13 @@ class AppointmentServiceTest {
     @Test
     void cancelAppointment() {
         CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setCustomerName("Cancel Customer");
+        request.setCustomerName("Cancel User");
         request.setCustomerEmail("cancel@example.com");
         request.setCustomerPhone("3333333333");
         request.setBranchId(1L);
         request.setServiceId(1L);
-        request.setAppointmentDate(LocalDate.now().plusDays(2));
-        request.setStartTime(LocalTime.of(11, 30));
+        request.setAppointmentDate(LocalDate.now().plusDays(3));
+        request.setStartTime(LocalTime.of(11, 0));
 
         Appointment created = appointmentService.createAppointment(request);
         Appointment cancelled = appointmentService.cancelAppointment(created.getId());
@@ -162,12 +158,12 @@ class AppointmentServiceTest {
         branchRepository.save(branch);
 
         CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setCustomerName("Inactive Branch Customer");
+        request.setCustomerName("Inactive Branch User");
         request.setCustomerEmail("inactivebranch@example.com");
         request.setCustomerPhone("4444444444");
         request.setBranchId(1L);
         request.setServiceId(1L);
-        request.setAppointmentDate(LocalDate.now().plusDays(3));
+        request.setAppointmentDate(LocalDate.now().plusDays(4));
         request.setStartTime(LocalTime.of(9, 30));
 
         assertThrows(ServiceUnavailableException.class, () -> appointmentService.createAppointment(request));
@@ -180,12 +176,12 @@ class AppointmentServiceTest {
         bankServiceRepository.save(service);
 
         CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setCustomerName("Inactive Service Customer");
+        request.setCustomerName("Inactive Service User");
         request.setCustomerEmail("inactiveservice@example.com");
         request.setCustomerPhone("5555555555");
         request.setBranchId(1L);
         request.setServiceId(1L);
-        request.setAppointmentDate(LocalDate.now().plusDays(3));
+        request.setAppointmentDate(LocalDate.now().plusDays(4));
         request.setStartTime(LocalTime.of(9, 30));
 
         assertThrows(ServiceUnavailableException.class, () -> appointmentService.createAppointment(request));
@@ -205,368 +201,3 @@ class AppointmentServiceTest {
         assertThrows(InvalidCustomerDetailsException.class, () -> appointmentService.createAppointment(request));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

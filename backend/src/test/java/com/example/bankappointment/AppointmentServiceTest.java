@@ -6,11 +6,13 @@ import com.example.bankappointment.service.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class AppointmentController {
+
     private final AppointmentService appointmentService;
 
     public AppointmentController(AppointmentService appointmentService) {

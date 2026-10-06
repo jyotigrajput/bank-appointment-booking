@@ -3,11 +3,13 @@ package com.example.bankappointment.controller;
 import com.example.bankappointment.entity.BankService;
 import com.example.bankappointment.service.BankServiceService;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class ServiceController {
+
     private final BankServiceService bankServiceService;
 
     public ServiceController(BankServiceService bankServiceService) {

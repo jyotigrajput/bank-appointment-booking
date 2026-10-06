@@ -1,6 +1,6 @@
 # Frontend
 
-This frontend is a React + Vite application for booking bank appointments.
+This frontend is built with React and Vite for the bank appointment booking flow.
 
 ## Setup
 
