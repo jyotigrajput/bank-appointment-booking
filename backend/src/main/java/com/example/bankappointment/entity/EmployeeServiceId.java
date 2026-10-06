@@ -3,52 +3,51 @@ package com.example.bankappointment.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "employee_services")
-public class EmployeeService {
+@Table(name = "employees")
+public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @EmbeddedId
-    private EmployeeServiceId id;
+    @Column(name = "employee_code", nullable = false, unique = true)
+    private String employeeCode;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String designation;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String phone;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("employeeId")
-    @JoinColumn(name = "employee_id")
-    private Employee employee;
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("serviceId")
-    @JoinColumn(name = "service_id")
-    private BankService bankService;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EmployeeStatus status;
 
-    public EmployeeService() {
-    }
+    public Employee() {}
 
-    public EmployeeService(Employee employee, BankService bankService) {
-        this.employee = employee;
-        this.bankService = bankService;
-        this.id = new EmployeeServiceId(employee.getId(), bankService.getId());
-    }
-
-    public EmployeeServiceId getId() {
-        return id;
-    }
-
-    public void setId(EmployeeServiceId id) {
-        this.id = id;
-    }
-
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    }
-
-    public BankService getBankService() {
-        return bankService;
-    }
-
-    public void setBankService(BankService bankService) {
-        this.bankService = bankService;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getEmployeeCode() { return employeeCode; }
+    public void setEmployeeCode(String employeeCode) { this.employeeCode = employeeCode; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDesignation() { return designation; }
+    public void setDesignation(String designation) { this.designation = designation; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public Branch getBranch() { return branch; }
+    public void setBranch(Branch branch) { this.branch = branch; }
+    public EmployeeStatus getStatus() { return status; }
+    public void setStatus(EmployeeStatus status) { this.status = status; }
 }

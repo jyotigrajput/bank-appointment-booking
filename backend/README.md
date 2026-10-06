@@ -1,6 +1,6 @@
 # Frontend
 
-This frontend is built with React and Vite.
+This frontend is a React + Vite application for booking bank appointments.
 
 ## Setup
 
@@ -9,4 +9,4 @@ npm install
 npm run dev
 ```
 
-The app should open at http://localhost:5173.
+The app runs at http://localhost:5173.

@@ -1,71 +1,76 @@
 # Bank Services Appointment Booking System
 
-The Bank Services Appointment Booking System is a beginner-friendly, three-tier application designed to help learn how real-world banking appointment workflows work in practice. It allows customers to select a service, choose a branch, check available appointment slots, and book an appointment with a representative.
+This project is a simple, beginner-friendly three-tier application for scheduling bank appointments. It demonstrates how a customer can select a banking service, choose a branch, view available dates and time slots, and confirm an appointment with a bank representative.
 
 ## Project Overview
 
-This project demonstrates a simple but realistic business workflow that banks often need:
+The application is designed for learning how a real-world business workflow is modeled across:
 
-- Customers need support for services such as account opening, loan consultation, KYC updates, and cheque services.
-- Banks want to schedule customer visits efficiently.
-- Branch staff need to avoid double booking and service conflicts.
-- A simple booking workflow makes the system easy to understand and extend.
+- Frontend: React + Vite
+- Backend: Java + Spring Boot
+- Database: MySQL
 
-## Business Problem
+It focuses on booking logic, validation, business rules, and clean layer separation without adding unnecessary complexity.
 
-Customers often need to visit a branch for services such as:
+## Why this exists
+
+Banks often need appointment-based service for operations such as:
 
 - Loan consultation
 - Account opening
 - KYC updates
 - Cheque services
-- Credit card support
+- Card support
 - Internet banking assistance
-- Fixed deposit enquiries
 
-Without a booking system, customers may spend time waiting in queues or scheduling conflicts may arise. An appointment system enables customers to choose a service, branch, date, and available time before visiting the bank.
+This system helps customers plan their branch visits efficiently and helps staff avoid scheduling conflicts.
 
 ## Features
 
-- Customer-facing booking flow for services, branches, date, and time
-- Availability API that returns free slots for a selected branch and service
-- Appointment booking with validation and business rules
-- Appointment confirmation page with human-readable reference number
-- My Appointments page using email and phone lookup
-- Simple cancellation flow for eligible appointments
-- Java Spring Boot backend with layered architecture
-- React frontend with Vite and modern component styling
+- Service listing page
+- Branch listing page
+- Multi-step appointment booking flow
+- Availability API for branch/service/date combinations
+- Appointment confirmation with reference number
+- Appointment lookup by email or phone
+- Appointment cancellation
+- Centralized backend validation and error handling
 - MySQL schema and sample data
-- Centralized backend exception handling
-- Unit/integration tests for important scenarios
+- Backend tests for booking logic
 
 ## Architecture
 
 ```text
 ┌───────────────────────────────────────┐
-│               Frontend                 │
-│       React + Vite + JavaScript       │
+│              Frontend                  │
+│      React + Vite + JavaScript        │
 └──────────────────┬────────────────────┘
                    │ REST API
                    ▼
 ┌───────────────────────────────────────┐
-│               Backend                 │
-│     Java + Spring Boot + Spring JPA   │
-└──────────────────���────────────────────┘
+│              Backend                   │
+│       Java + Spring Boot + JPA        │
+└──────────────────┬────────────────────┘
                    │ JDBC / JPA
                    ▼
 ┌───────────────────────────────────────┐
-│               Database                 │
-│               MySQL                  │
+│              Database                  │
+│                MySQL                  │
 └───────────────────────────────────────┘
 ```
 
 ## Technology Stack
 
-- Frontend: React.js, JavaScript, Vite, HTML, CSS, Fetch API
-- Backend: Java, Spring Boot, Maven, Spring Web, Spring Data JPA, MySQL Driver
-- Database: MySQL 8
-- Testing: JUnit 5, Spring Boot Test, H2 for test profile
+- React
+- Vite
+- JavaScript
+- Java
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Maven
+- MySQL 8
+- JUnit 5
 
 ## Monorepo Structure
 
@@ -87,12 +92,12 @@ bank-appointment-booking/
 │   └── sample-data.sql
 ├── README.md
 ├── .gitignore
-└── .github/ (not used in this project)
+└── .github/ (not used)
 ```
 
 ## Database Design
 
-The database contains the main entities:
+The application uses six main database tables:
 
 - customers
 - branches
@@ -101,95 +106,66 @@ The database contains the main entities:
 - employee_services
 - appointments
 
-Relationships:
+Important relationships:
 
 - A branch has many employees and many appointments.
-- A service may be supported by many employees.
-- A customer may have many appointments.
+- A service can be mapped to many employees.
+- A customer can have many appointments.
 - An employee can support multiple services.
-- Each appointment belongs to a branch, a service, an employee, and a customer.
+- Each appointment belongs to one customer, branch, service, and employee.
 
 ## Booking Flow
-
-The booking process is designed as follows:
 
 1. Customer selects a bank service.
 2. Customer selects a branch.
 3. Customer chooses a date.
-4. The system loads available appointment slots.
-5. Customer chooses a preferred time.
+4. The availability API calculates open slots.
+5. Customer selects a slot.
 6. Customer enters their name, email, and phone.
-7. System validates the data and finds an available employee.
-8. Appointment is created and confirmation is returned.
-9. Customer can view appointments and cancel eligible ones.
+7. Backend validates the request and finds an eligible employee.
+8. Appointment is saved and a confirmation is returned.
+9. Customer may view and cancel appointments later.
 
 ## Business Rules
 
-The application enforces the following rules:
+The backend enforces these rules:
 
-- No double booking for the same employee at the same date and time.
-- A customer cannot book an appointment in the past.
-- Only active branches can be used.
-- Only active services can be selected.
-- An employee must belong to the selected branch.
-- An employee must support the selected service.
-- Appointments must fall within branch opening hours.
-- Appointment duration is based on the service estimated duration.
-- Cancelled appointments no longer block the slot.
+- No double booking for the same employee at the same time.
+- No past appointments.
+- Only active branches may be booked.
+- Only active services may be booked.
+- Employees must belong to the selected branch.
+- Employees must support the selected service.
+- Appointments must be within branch working hours.
+- Appointment duration is based on the service duration.
+- Cancelled appointments no longer block the time slot.
 
 ## REST API Documentation
 
 Base URL: http://localhost:8080/api
 
-### Services
+### GET /api/services
+- Returns all services.
 
-- Method: GET
-- URL: /api/services
-- Purpose: List all services
-- Response: 200 OK with array of services
+### GET /api/services/{id}
+- Returns one service by ID.
 
-- Method: GET
-- URL: /api/services/{id}
-- Purpose: Get a service by ID
-- Response: 200 OK with service details
-- Errors: 404 Not Found if service does not exist
+### GET /api/branches
+- Returns all branches.
 
-### Branches
+### GET /api/branches/{id}
+- Returns one branch by ID.
 
-- Method: GET
-- URL: /api/branches
-- Purpose: List all branches
-- Response: 200 OK with array of branches
+### GET /api/employees
+- Returns all employees.
 
-- Method: GET
-- URL: /api/branches/{id}
-- Purpose: Get a branch by ID
-- Response: 200 OK with branch details
-- Errors: 404 Not Found if branch does not exist
+### GET /api/employees/{id}
+- Returns one employee by ID.
 
-### Employees
+### GET /api/availability?branchId=1&serviceId=2&date=2026-10-10
+- Returns a list of available slot objects.
 
-- Method: GET
-- URL: /api/employees
-- Purpose: List active employees
-- Response: 200 OK with array of employees
-
-- Method: GET
-- URL: /api/employees/{id}
-- Purpose: Get an employee by ID
-- Response: 200 OK with employee details
-- Errors: 404 Not Found if employee does not exist
-
-### Availability
-
-- Method: GET
-- URL: /api/availability?branchId=1&serviceId=2&date=2026-10-10
-- Purpose: Fetch available appointment slots
-- Query Parameters:
-  - branchId: required
-  - serviceId: required
-  - date: required
-- Response: 200 OK with list of slot objects:
+Example response:
 
 ```json
 [
@@ -201,12 +177,10 @@ Base URL: http://localhost:8080/api
 ]
 ```
 
-### Appointments
+### POST /api/appointments
+- Creates a new appointment.
 
-- Method: POST
-- URL: /api/appointments
-- Purpose: Create a new appointment
-- Request Body:
+Request body:
 
 ```json
 {
@@ -220,37 +194,21 @@ Base URL: http://localhost:8080/api
 }
 ```
 
-- Response: 201 Created with created appointment details
-- Errors:
-  - 400 Bad Request for invalid customer details or invalid date/time
-  - 404 Not Found for missing branch, service, or employee
-  - 409 Conflict for double booking or other slot conflicts
+### GET /api/appointments/{id}
+- Gets one appointment.
 
-- Method: GET
-- URL: /api/appointments/{id}
-- Purpose: Retrieve an appointment by ID
-- Response: 200 OK
+### GET /api/appointments
+- Lists all appointments.
 
-- Method: GET
-- URL: /api/appointments
-- Purpose: List all appointments
-- Response: 200 OK
+### GET /api/appointments/search?email=john@example.com
+- Searches customer appointments by email or phone.
 
-- Method: GET
-- URL: /api/appointments/search?email=john@example.com
-- Purpose: Search appointments by email or phone
-- Response: 200 OK with list of appointments
-
-- Method: PATCH
-- URL: /api/appointments/{id}/cancel
-- Purpose: Cancel an appointment
-- Response: 200 OK with updated appointment
+### PATCH /api/appointments/{id}/cancel
+- Cancels an appointment.
 
 ## Local Setup
 
-### Prerequisites
-
-Install the following tools:
+### Install prerequisites
 
 - Node.js 18+
 - Java 17+
@@ -258,22 +216,16 @@ Install the following tools:
 - MySQL 8+
 - Git
 
-### Database Setup
+### Database setup
 
-1. Create a MySQL database named `bank_appointment_db`.
-2. Run the schema script:
+Create a MySQL database named `bank_appointment_db` and run:
 
 ```bash
 mysql -u root -p < database/schema.sql
-```
-
-3. Insert the sample data:
-
-```bash
 mysql -u root -p < database/sample-data.sql
 ```
 
-4. Configure your database credentials as environment variables:
+Set environment variables before starting the backend:
 
 ```bash
 export DB_HOST=localhost
@@ -283,39 +235,27 @@ export DB_USERNAME=your_db_user
 export DB_PASSWORD=your_db_password
 ```
 
-### Backend Setup
-
-From the repository root:
+### Backend setup
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 cd backend
 mvn spring-boot:run
 ```
 
-The backend will start on:
-
-- http://localhost:8080
-
-### Frontend Setup
-
-From the repository root:
+### Frontend setup
 
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-The frontend will run on:
-
-- http://localhost:5173
 
 ## URLs
 
@@ -324,15 +264,14 @@ The frontend will run on:
 
 ## Troubleshooting
 
-- If the backend cannot connect to MySQL, verify environment variables and the MySQL service status.
-- If the frontend cannot reach the backend, confirm the backend is running on port 8080.
-- If dates are not showing in the UI, ensure the selected service and branch are valid.
-- If the app shows a validation error, check that name, email, and phone are correctly entered.
-- If a booking fails with a conflict error, another customer may have already booked the same slot.
+- If the backend cannot connect to MySQL, verify the DB environment variables.
+- If the frontend cannot connect to the backend, confirm the backend is running on port 8080.
+- If no slots appear, verify that the selected branch and service are active.
+- If bookings fail, check validation and available employee mappings.
 
 ## Future DevOps Learning Path
 
-This application is intentionally built as a local learning project before introducing DevOps concepts. It can later be used to practice the following stages:
+This project is intentionally built as a local application before introducing DevOps practices.
 
 ```text
 Stage 1  Local Development
@@ -356,97 +295,57 @@ Stage 9  Cloud Deployment
 Stage 10 Monitoring & Logging
 ```
 
-Each stage introduces a new technology area for practice and experimentation.
+These are future learning stages only; none are implemented in this project.
 
-## Suggested DevOps Exercises
+## Suggested Future Exercises
 
-The following are future exercises to practice after the application is working locally:
-
-### Beginner
-
-1. Run the application locally without Docker.
+1. Run the app locally.
 2. Understand the monorepo structure.
-3. Initialize the repository with Git.
-4. Create your first commit.
-5. Create feature branches.
-6. Test the REST API manually using Postman or curl.
-7. Inspect MySQL tables and data.
-8. Modify a React component and observe the UI update.
-9. Review the backend logs and trace a booking request.
-10. Update a SQL script and re-run the schema.
+3. Create a Git repository.
+4. Make commits and branches.
+5. Test REST endpoints manually.
+6. Inspect MySQL tables.
+7. Modify a React component.
+8. Build a backend service method.
+9. Add a new branch.
+10. Add a new service.
+11. Write a new backend test.
+12. Learn basic SQL joins.
+13. Create a frontend form validation.
+14. Add a loading indicator for availability queries.
+15. Create a Dockerfile for frontend.
+16. Create a Dockerfile for backend.
+17. Create a Docker Compose file.
+18. Add a MySQL container.
+19. Create a CI workflow.
+20. Build Docker images automatically.
+21. Deploy to Kubernetes.
+22. Configure Kubernetes Services.
+23. Add secrets and config maps.
+24. Set up health checks.
+25. Add centralized logging.
+26. Add Prometheus metrics.
+27. Add Grafana dashboards.
+28. Deploy to a cloud provider.
+29. Perform a rolling deployment.
+30. Practice rollback scenarios.
 
-### Docker and Containerization
+## Security and Privacy Notice
 
-11. Create a frontend Dockerfile.
-12. Create a backend Dockerfile.
-13. Create a Docker Compose configuration for the app.
-14. Containerize MySQL.
-15. Run the full stack using containers.
-16. Understand container networking.
-17. Explore data persistence for MySQL.
-18. Learn how ports map between containers and the host.
+This application is a learning project and is not suitable for real banking customer data without security, compliance, authentication, and privacy review.
 
-### CI/CD
+It does not implement:
 
-19. Create a GitHub Actions workflow for backend tests.
-20. Create a GitHub Actions workflow for frontend build checks.
-21. Run automated tests on every pull request.
-22. Build Docker images automatically in CI.
-23. Publish container images to a registry.
-24. Add quality checks for formatting and linting.
-
-### Kubernetes
-
-25. Deploy the backend to Kubernetes.
-26. Deploy the frontend to Kubernetes.
-27. Deploy MySQL to Kubernetes.
-28. Configure Services for internal networking.
-29. Configure Secrets for database credentials.
-30. Add readiness and liveness probes.
-31. Scale the backend pods.
-32. Perform a rolling deployment.
-33. Perform a rollback to a previous version.
-
-### Monitoring and Cloud
-
-34. Deploy the application to a cloud provider.
-35. Add centralized logging.
-36. Add Prometheus monitoring.
-37. Add Grafana dashboards.
-38. Review application metrics and trends.
-39. Study error logging and alerting.
-40. Practice production-oriented operational tasks.
-
-Important: these are future exercises only. They are not implemented in this project.
-
-## Security and Privacy Considerations
-
-This is a learning application and is not intended for production use with real banking data. It intentionally avoids:
-
-- login
-- passwords
-- OTPs
-- account access
+- login or authentication
+- passwords or OTP
+- bank account access
 - financial transactions
-- payment processing
-- sensitive bank account data
-
-This project should not be used for real customer banking records without significant work in authentication, authorization, privacy, compliance, and secure data handling.
-
-## Database Setup Files
-
-The project includes:
-
-- `database/schema.sql`: creates all required tables, constraints, and indexes
-- `database/sample-data.sql`: inserts realistic sample data for branches, services, employees, customers, and appointments
-
-## Root README Requirement
-
-This file serves as the main project documentation and explains setup, architecture, business rules, sample data, API usage, and the future learning path.
+- payment flows
 
 ## Final Notes
 
-This project intentionally stays small and beginner-friendly. It focuses on the booking workflow, proper layer separation, validation, business rules, and clear documentation. It is designed to be easy to understand, run locally, and later expand when practicing DevOps concepts.
+This project is intentionally simple, clean, and beginner-friendly. It is designed to be easy to understand and extend while teaching the basics of full-stack application design.
 
-The application is not a real banking system and should not be used for real customer data or sensitive banking operations.
+The goal is to learn local application architecture first and then build DevOps skills later in a structured way.
+
 "},{

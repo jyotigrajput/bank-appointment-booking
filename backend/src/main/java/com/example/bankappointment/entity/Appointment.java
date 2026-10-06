@@ -1,48 +1,29 @@
 package com.example.bankappointment.entity;
 
-import jakarta.persistence.Embeddable;
-import java.io.Serializable;
-import java.util.Objects;
+import jakarta.persistence.*;
 
-@Embeddable
-public class EmployeeServiceId implements Serializable {
+@Entity
+@Table(name = "employee_services")
+public class EmployeeService {
+    @EmbeddedId
+    private EmployeeServiceId id;
 
-    private Long employeeId;
-    private Long serviceId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("employeeId")
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
 
-    public EmployeeServiceId() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("serviceId")
+    @JoinColumn(name = "service_id")
+    private BankService bankService;
 
-    public EmployeeServiceId(Long employeeId, Long serviceId) {
-        this.employeeId = employeeId;
-        this.serviceId = serviceId;
-    }
+    public EmployeeService() {}
 
-    public Long getEmployeeId() {
-        return employeeId;
-    }
-
-    public void setEmployeeId(Long employeeId) {
-        this.employeeId = employeeId;
-    }
-
-    public Long getServiceId() {
-        return serviceId;
-    }
-
-    public void setServiceId(Long serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EmployeeServiceId that)) return false;
-        return Objects.equals(employeeId, that.employeeId) && Objects.equals(serviceId, that.serviceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(employeeId, serviceId);
-    }
+    public EmployeeServiceId getId() { return id; }
+    public void setId(EmployeeServiceId id) { this.id = id; }
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
+    public BankService getBankService() { return bankService; }
+    public void setBankService(BankService bankService) { this.bankService = bankService; }
 }

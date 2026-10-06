@@ -6,4 +6,3 @@ spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=create-drop
 spring.jpa.show-sql=false
 spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-spring.h2.console.enabled=true

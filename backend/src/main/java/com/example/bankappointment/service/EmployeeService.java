@@ -1,27 +1,25 @@
 package com.example.bankappointment.service;
 
-import com.example.bankappointment.entity.Branch;
-import com.example.bankappointment.exception.BranchNotFoundException;
-import com.example.bankappointment.repository.BranchRepository;
+import com.example.bankappointment.entity.BankService;
+import com.example.bankappointment.exception.ServiceNotFoundException;
+import com.example.bankappointment.repository.BankServiceRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
-public class BranchService {
+public class BankServiceService {
+    private final BankServiceRepository bankServiceRepository;
 
-    private final BranchRepository branchRepository;
-
-    public BranchService(BranchRepository branchRepository) {
-        this.branchRepository = branchRepository;
+    public BankServiceService(BankServiceRepository bankServiceRepository) {
+        this.bankServiceRepository = bankServiceRepository;
     }
 
-    public List<Branch> getAllBranches() {
-        return branchRepository.findAll();
+    public List<BankService> getAllServices() {
+        return bankServiceRepository.findAll();
     }
 
-    public Branch getBranchById(Long id) {
-        return branchRepository.findById(id)
-                .orElseThrow(() -> new BranchNotFoundException(id));
+    public BankService getServiceById(Long id) {
+        return bankServiceRepository.findById(id)
+                .orElseThrow(() -> new ServiceNotFoundException(id));
     }
 }

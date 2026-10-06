@@ -1,85 +1,47 @@
-package com.example.bankappointment.exception;
+package com.example.bankappointment.controller;
 
-import com.example.bankappointment.dto.ErrorResponse;
+import com.example.bankappointment.dto.CreateAppointmentRequest;
+import com.example.bankappointment.entity.Appointment;
+import com.example.bankappointment.service.AppointmentService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
-import java.time.LocalDateTime;
+@RestController
+@RequestMapping("/api")
+public class AppointmentController {
+    private final AppointmentService appointmentService;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(BranchNotFoundException.class)
-    public ErrorResponse handleBranchNotFound(BranchNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "BRANCH_NOT_FOUND", ex.getMessage());
+    public AppointmentController(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
     }
 
-    @ExceptionHandler(ServiceNotFoundException.class)
-    public ErrorResponse handleServiceNotFound(ServiceNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "SERVICE_NOT_FOUND", ex.getMessage());
+    @PostMapping("/appointments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Appointment createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
+        return appointmentService.createAppointment(request);
     }
 
-    @ExceptionHandler(EmployeeNotFoundException.class)
-    public ErrorResponse handleEmployeeNotFound(EmployeeNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "EMPLOYEE_NOT_FOUND", ex.getMessage());
+    @GetMapping("/appointments/{id}")
+    public Appointment getAppointment(@PathVariable Long id) {
+        return appointmentService.getAppointmentById(id);
     }
 
-    @ExceptionHandler(AppointmentNotFoundException.class)
-    public ErrorResponse handleAppointmentNotFound(AppointmentNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "APPOINTMENT_NOT_FOUND", ex.getMessage());
+    @GetMapping("/appointments")
+    public List<Appointment> getAllAppointments() {
+        return appointmentService.getAllAppointments();
     }
 
-    @ExceptionHandler(InvalidAppointmentDateException.class)
-    public ErrorResponse handleInvalidAppointmentDate(InvalidAppointmentDateException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "INVALID_APPOINTMENT_DATE", ex.getMessage());
+    @GetMapping("/appointments/search")
+    public List<Appointment> searchAppointments(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone) {
+        return appointmentService.searchAppointmentsByCustomer(email, phone);
     }
 
-    @ExceptionHandler(InvalidAppointmentTimeException.class)
-    public ErrorResponse handleInvalidAppointmentTime(InvalidAppointmentTimeException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "INVALID_APPOINTMENT_TIME", ex.getMessage());
-    }
-
-    @ExceptionHandler(BranchClosedException.class)
-    public ErrorResponse handleBranchClosed(BranchClosedException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "BRANCH_CLOSED", ex.getMessage());
-    }
-
-    @ExceptionHandler(ServiceUnavailableException.class)
-    public ErrorResponse handleServiceUnavailable(ServiceUnavailableException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "SERVICE_UNAVAILABLE", ex.getMessage());
-    }
-
-    @ExceptionHandler(EmployeeUnavailableException.class)
-    public ErrorResponse handleEmployeeUnavailable(EmployeeUnavailableException ex) {
-        return buildError(HttpStatus.CONFLICT, "EMPLOYEE_UNAVAILABLE", ex.getMessage());
-    }
-
-    @ExceptionHandler(AppointmentAlreadyBookedException.class)
-    public ErrorResponse handleAppointmentBooked(AppointmentAlreadyBookedException ex) {
-        return buildError(HttpStatus.CONFLICT, "APPOINTMENT_ALREADY_BOOKED", ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidCustomerDetailsException.class)
-    public ErrorResponse handleInvalidCustomerDetails(InvalidCustomerDetailsException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "INVALID_CUSTOMER_DETAILS", ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ErrorResponse handleValidationException(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError() != null
-                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                : "Validation failed.";
-        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ErrorResponse handleGenericException(Exception ex) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.");
-    }
-
-    private ErrorResponse buildError(HttpStatus httpStatus, String code, String message) {
-        return new ErrorResponse(LocalDateTime.now(), httpStatus.value(), code, message);
+    @PatchMapping("/appointments/{id}/cancel")
+    public Appointment cancelAppointment(@PathVariable Long id) {
+        return appointmentService.cancelAppointment(id);
     }
 }

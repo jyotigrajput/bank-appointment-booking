@@ -1,33 +1,16 @@
-package com.example.bankappointment.dto;
+package com.example.bankappointment.repository;
 
-import java.time.LocalDateTime;
+import com.example.bankappointment.entity.Appointment;
+import com.example.bankappointment.entity.AppointmentStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import java.time.LocalDate;
+import java.util.List;
 
-public class ErrorResponse {
-    private final LocalDateTime timestamp;
-    private final int status;
-    private final String error;
-    private final String message;
+public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+    @Query("SELECT a FROM Appointment a WHERE a.employee.id = :employeeId AND a.appointmentDate = :date AND a.status <> :status")
+    List<Appointment> findByEmployeeIdAndAppointmentDateAndStatusNot(Long employeeId, LocalDate date, AppointmentStatus status);
 
-    public ErrorResponse(LocalDateTime timestamp, int status, String error, String message) {
-        this.timestamp = timestamp;
-        this.status = status;
-        this.error = error;
-        this.message = message;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+    @Query("SELECT a FROM Appointment a WHERE a.customer.email = :email OR a.customer.phone = :phone")
+    List<Appointment> findByCustomerEmailOrPhone(String email, String phone);
 }

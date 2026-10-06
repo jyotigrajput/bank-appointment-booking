@@ -1,12 +1,9 @@
-package com.example.bankappointment;
+package com.example.bankappointment.entity;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class BankAppointmentApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(BankAppointmentApplication.class, args);
-    }
+public enum AppointmentStatus {
+    BOOKED,
+    CONFIRMED,
+    COMPLETED,
+    CANCELLED,
+    NO_SHOW
 }
