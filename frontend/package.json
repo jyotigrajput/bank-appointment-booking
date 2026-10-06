@@ -1,0 +1,12 @@
+# Backend
+
+This backend is built with Java and Spring Boot.
+
+## Setup
+
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+
+The API runs on http://localhost:8080.
